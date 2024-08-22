@@ -6,6 +6,6 @@ SELECT
 FROM
     metal_bands
 WHERE
-    main_style = 'Glam rock'
+    style = 'Glam rock'
 ORDER BY
     lifespan DESC;
