@@ -14,8 +14,9 @@ def count_calls(method: Callable) -> Callable:
         if isinstance(self._redis, redis.Redis):
             self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
-    
+
     return wrapper
+
 
 def call_history(method: Callable) -> Callable:
     """Decorator to store function call history."""
@@ -31,8 +32,9 @@ def call_history(method: Callable) -> Callable:
             self._redis.rpush(outputs_key, str(result))
 
         return result
-    
+
     return wrapper
+
 
 def replay(method: Callable) -> None:
     """Display the history of calls to a particular function."""
@@ -54,9 +56,10 @@ def replay(method: Callable) -> None:
 
         print(f"{method_name}(*{input_str}) -> {output_str}")
 
+
 class Cache:
     """Cache class for interacting with Redis"""
-    
+
     def __init__(self) -> None:
         """
         Initialize the Cache class with a Redis client and flush the database
