@@ -13,14 +13,17 @@ def cache_page(method: Callable) -> Callable:
     """Decorator to cache page content with expiration."""
     @functools.wraps(method)
     def wrapper(url: str) -> str:
-        redis_client.incr(f"count:{url}")
-        cached_content = redis_client.get(f"cache_page:{url}")
+        count_key = f"count:{url}"
+        cache_key = f"content:{url}"
+
+        redis_client.incr(count_key)
+
+        cached_content = redis_client.get(cache_key)
         if cached_content:
             return cached_content.decode('utf-8')
 
         content = method(url)
-        redis_client.set(f"count:{url}", 0)
-        redis_client.setex(f"content:{url}", 10, content)
+        redis_client.setex(cache_key, 10, content)
 
         return content
 
