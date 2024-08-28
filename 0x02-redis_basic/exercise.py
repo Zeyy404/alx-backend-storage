@@ -2,7 +2,7 @@
 """Cache class module"""
 import redis
 import uuid
-from typing import Union
+from typing import Union, Optional, Callable
 
 
 class Cache:
@@ -19,3 +19,26 @@ class Cache:
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
+
+    def get(self, key: str,
+            fn: Optional[Callable[[bytes], any]]) -> Optional[any]:
+        """
+        Retrieves data from Redis and apply a conversion function if provided
+        """
+        data = self._redis.get(key)
+        if data is None:
+            return None
+
+        if fn:
+            return fn(data)
+
+        return data
+
+    def get_str(self, key: str) -> Optional[str]:
+        """Retrieve the data as a UTF-8 string"""
+        return self.get(key, fn=lambda x: x.decode('utf-8')
+                        if x is not None else None)
+
+    def get_int(self, key: str) -> Optional[int]:
+        """Retrieve the data as an integer"""
+        return self.get(key, fn=lambda x: int(x) if x is not None else None)
