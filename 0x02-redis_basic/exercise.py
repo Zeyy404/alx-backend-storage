@@ -14,9 +14,8 @@ def count_calls(method: Callable) -> Callable:
         if isinstance(self._redis, redis.Redis):
             self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
-
+    
     return wrapper
-
 
 def call_history(method: Callable) -> Callable:
     """Decorator to store function call history."""
@@ -32,22 +31,22 @@ def call_history(method: Callable) -> Callable:
             self._redis.rpush(outputs_key, str(result))
 
         return result
-
+    
     return wrapper
 
-
-def replay(cache: Type[Cache], method: Callable) -> None:
+def replay(method: Callable) -> None:
     """Display the history of calls to a particular function."""
-    redis_client = cache._redis
-    inputs_key = f"{method.__qualname__}:inputs"
-    outputs_key = f"{method.__qualname__}:outputs"
+    redis_client = method.__self__._redis
+    method_name = method.__qualname__
+    inputs_key = f"{method_name}:inputs"
+    outputs_key = f"{method_name}:outputs"
 
     inputs = redis_client.lrange(inputs_key, 0, -1)
     outputs = redis_client.lrange(outputs_key, 0, -1)
 
     num_calls = len(inputs)
 
-    print(f"{method.__qualname__} was called {num_calls} times:")
+    print(f"{method_name} was called {num_calls} times:")
 
     for index, (input_data, output_data) in enumerate(zip(inputs, outputs), 1):
         input_str = input_data.decode('utf-8')
@@ -55,9 +54,9 @@ def replay(cache: Type[Cache], method: Callable) -> None:
 
         print(f"{method_name}(*{input_str}) -> {output_str}")
 
-
 class Cache:
     """Cache class for interacting with Redis"""
+    
     def __init__(self) -> None:
         """
         Initialize the Cache class with a Redis client and flush the database
@@ -74,9 +73,9 @@ class Cache:
         return key
 
     def get(self, key: str,
-            fn: Callable = None) -> Optional[any]:
+            fn: Optional[Callable[[bytes], Any]] = None) -> Optional[Any]:
         """
-        Retrieves data from Redis and apply a conversion function if provided
+        Retrieves data from Redis and applies a conversion function if provided
         """
         data = self._redis.get(key)
         if data is None:
