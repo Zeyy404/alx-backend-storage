@@ -10,7 +10,7 @@ def count_calls(method: Callable) -> Callable:
     """Decorator to count the number of times a method is called."""
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs) -> Any:
-        """Returns the given method after incrementing its call counter"""
+        """Increments the call counter and returns the method result."""
         if isinstance(self._redis, redis.Redis):
             self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
@@ -21,7 +21,7 @@ def count_calls(method: Callable) -> Callable:
 def call_history(method: Callable) -> Callable:
     """Decorator to store function call history."""
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs) -> Any:
         inputs_key = f"{method.__qualname__}:inputs"
         outputs_key = f"{method.__qualname__}:outputs"
 
@@ -47,7 +47,7 @@ def replay(cache: Type[Cache], method: Callable) -> None:
 
     num_calls = len(inputs)
 
-    print(f"{method_name} was called {num_calls} times:")
+    print(f"{method.__qualname__} was called {num_calls} times:")
 
     for index, (input_data, output_data) in enumerate(zip(inputs, outputs), 1):
         input_str = input_data.decode('utf-8')
