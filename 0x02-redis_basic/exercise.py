@@ -9,7 +9,8 @@ from typing import Union, Optional, Callable, Any
 def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to count the number of times a method is called."""
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs) -> Any:
+        """Returns the given method after incrementing its call counter"""
         key = f"count:{method.__qualname__}"
         self._redis.incr(key)
         return method(self, *args, **kwargs)
