@@ -2,6 +2,7 @@
 """A module to fetch and cache web pages"""
 import redis
 import requests
+import functools
 from typing import Callable
 
 
@@ -10,6 +11,7 @@ redis_client = redis.Redis()
 
 def cache_page(method: Callable) -> Callable:
     """Decorator to cache page content with expiration."""
+    @functools.wraps(method)
     def wrapper(url: str) -> str:
         redis_client.incr(f"count:{url}")
         cached_content = redis_client.get(f"cache_page:{url}")
