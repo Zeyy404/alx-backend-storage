@@ -11,10 +11,10 @@ def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs) -> Any:
         """Returns the given method after incrementing its call counter"""
-        key = f"count:{method.__qualname__}"
-        self._redis.incr(key)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
-    
+
     return wrapper
 
 class Cache:
