@@ -3,7 +3,7 @@
 import redis
 import uuid
 import functools
-from typing import Union, Optional, Callable, Any
+from typing import Union, Optional, Callable, Any, Type
 
 
 def count_calls(method: Callable) -> Callable:
@@ -17,6 +17,7 @@ def count_calls(method: Callable) -> Callable:
 
     return wrapper
 
+
 def call_history(method: Callable) -> Callable:
     """Decorator to store function call history."""
     @functools.wraps(method)
@@ -29,10 +30,30 @@ def call_history(method: Callable) -> Callable:
         result = method(self, *args, **kwargs)
         if isinstance(self._redis, redis.Redis):
             self._redis.rpush(outputs_key, str(result))
-        
+
         return result
 
     return wrapper
+
+
+def replay(cache: Type[Cache], method: Callable) -> None:
+    """Display the history of calls to a particular function."""
+    redis_client = cache._redis
+    inputs_key = f"{method.__qualname__}:inputs"
+    outputs_key = f"{method.__qualname__}:outputs"
+
+    inputs = redis_client.lrange(inputs_key, 0, -1)
+    outputs = redis_client.lrange(outputs_key, 0, -1)
+
+    num_calls = len(inputs)
+
+    print(f"{method_name} was called {num_calls} times:")
+
+    for index, (input_data, output_data) in enumerate(zip(inputs, outputs), 1):
+        input_str = input_data.decode('utf-8')
+        output_str = output_data.decode('utf-8')
+
+        print(f"{method_name}(*{input_str}) -> {output_str}")
 
 
 class Cache:
@@ -52,8 +73,7 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str,
-            fn: Optional[Callable[[bytes], Optional[any]]] = None) -> Optional[any]:
+    def get(self, key: str, fn: Optional[Callable[[bytes], Optional[any]]] = None) -> Optional[any]:
         """
         Retrieves data from Redis and apply a conversion function if provided
         """
