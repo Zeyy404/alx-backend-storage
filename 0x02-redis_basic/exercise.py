@@ -21,7 +21,7 @@ class Cache:
         return key
 
     def get(self, key: str,
-            fn: Optional[Callable[[bytes], any]]) -> Optional[any]:
+            fn: Optional[Callable[[bytes], Optional[any]]] = None) -> Optional[any]:
         """
         Retrieves data from Redis and apply a conversion function if provided
         """
