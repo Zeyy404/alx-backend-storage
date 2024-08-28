@@ -73,7 +73,8 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable[[bytes], Optional[any]]] = None) -> Optional[any]:
+    def get(self, key: str,
+            fn: Optional[Callable[[bytes], Optional[any]]] = None) -> Optional[any]:
         """
         Retrieves data from Redis and apply a conversion function if provided
         """
